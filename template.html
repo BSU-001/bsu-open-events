@@ -4,51 +4,37 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Postgraduate Open Days and PGCE Open Events | Bath Spa University</title>
-<!-- Links open in a new tab rather than inside the Vepple frame -->
-<base target="_blank">
 <style>
   html, body { margin:0; padding:0; background:transparent; }
-  .bsu-events { font-family: Arial, Helvetica, sans-serif; color:#1a1a1a; line-height:1.5;
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; }
+  .bsu-events { font-family: Arial, Helvetica, sans-serif; color:#1a1a1a; line-height:1.4;
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; }
   .bsu-events .event-block { padding:24px; display:flex; flex-direction:column; }
   .bsu-events .event-block--pg   { background:#F2F8FD; }
   .bsu-events .event-block--pgce { background:#FAF6EA; }
-  .bsu-events h3 { font-size:1.5rem; margin:0 0 12px; }
-  .bsu-events .event-dates { list-style:none; padding:0; margin:0 0 20px; }
-  .bsu-events .event-dates li { padding:12px 0; border-bottom:1px solid rgba(0,0,0,.12); }
-  .bsu-events .event-dates li:first-child { border-top:1px solid rgba(0,0,0,.12); }
-  .bsu-events .event-intro p { margin:0 0 12px; }
-  .bsu-events .event-intro a { color:inherit; }
-  .bsu-events .event-cta { margin-top:auto; padding-top:8px; }
-  .bsu-events .btn { display:inline-block; background:#22314E; color:#fff; text-decoration:none;
-    font-weight:700; padding:12px 28px; }
-  .bsu-events .btn:hover, .bsu-events .btn:focus { background:#000; }
+  .bsu-events h3 { font-size:1.4rem; margin:0 0 12px; }
+  .bsu-events .event-list { list-style:none; padding:0; margin:0; }
+  .bsu-events .event-list li { padding:10px 0; border-bottom:1px solid rgba(0,0,0,.12); }
+  .bsu-events .event-list li:first-child { border-top:1px solid rgba(0,0,0,.12); }
+  .bsu-events .event-date { display:block; font-weight:700; }
+  .bsu-events .event-time { display:block; }
 </style>
 </head>
 <body>
 <!-- Generated automatically from https://www.bathspa.ac.uk/open-days/ - edit template.html, not index.html -->
 <div class="bsu-events">
 
-  <section class="event-block event-block--pg" aria-labelledby="pg-heading">
-    <h3 id="pg-heading">Postgraduate Open Days</h3>
-    <ul class="event-dates">
-      {{PG_DATES}}
+  <section class="event-block event-block--pg">
+    <h3>{{PG_NAME}}</h3>
+    <ul class="event-list">
+      {{PG_EVENTS}}
     </ul>
-    <div class="event-intro">
-      {{PG_INTRO}}
-    </div>
-    <div class="event-cta"><a class="btn" href="https://be.bathspa.ac.uk/form/PG_PGCE_open_days">Book now</a></div>
   </section>
 
-  <section class="event-block event-block--pgce" aria-labelledby="pgce-heading">
-    <h3 id="pgce-heading">PGCE Open Events</h3>
-    <ul class="event-dates">
-      {{PGCE_DATES}}
+  <section class="event-block event-block--pgce">
+    <h3>{{PGCE_NAME}}</h3>
+    <ul class="event-list">
+      {{PGCE_EVENTS}}
     </ul>
-    <div class="event-intro">
-      {{PGCE_INTRO}}
-    </div>
-    <div class="event-cta"><a class="btn" href="https://be.bathspa.ac.uk/form/PG_PGCE_open_days">Book now</a></div>
   </section>
 
 </div>

@@ -1,0 +1,46 @@
+name: Update open events
+
+on:
+  schedule:
+    - cron: "17 5 * * *"   # every day at about 5.17am UK time (GitHub runs it within an hour or so)
+  workflow_dispatch:       # adds a "Run workflow" button for updating on demand
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install parser
+        run: pip install beautifulsoup4
+
+      # If this step fails (site down, page restructured), nothing is published
+      # and the last good version stays live.
+      - name: Rebuild page from bathspa.ac.uk
+        run: python build.py
+
+      - name: Prepare site
+        run: mkdir _site && cp index.html _site/
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,1 @@
+# bsu-open-events

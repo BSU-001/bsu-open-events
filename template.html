@@ -8,30 +8,24 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  /* Sizes: change these numbers to make the card text bigger or smaller */
-  :root {
-    --heading-size: 1.75rem;   /* "Upcoming Open Days" */
-    --event-size: 1.05rem;     /* each event line */
-    --padding: 32px;           /* space inside the card */
-  }
-  html, body { margin:0; padding:0; height:100%; background:transparent; }
+  /* The text sizes itself to fit the frame (see the script at the bottom).
+     These are the largest and smallest sizes it's allowed to use, in pixels. */
+  :root { --max-text: 22px; --min-text: 10px; }
+  html, body { margin:0; padding:0; height:100%; background:transparent; overflow:hidden; }
   .open-days-card {
-    box-sizing:border-box; width:100%;
-    min-height:100%;            /* fills the iframe height, so it lines up with the box beside it */
+    box-sizing:border-box; width:100%; height:100%;
+    overflow:hidden;
     background:#982871; color:#fff;
     border-radius:24px;
-    padding:var(--padding);
+    padding:1.5em;
     font-family:"Lexend", "Helvetica Neue", Arial, sans-serif;
   }
   .open-days-card h2 {
-    margin:0 0 20px; font-weight:500;
-    font-size:var(--heading-size); line-height:1.15;
+    margin:0 0 0.8em; font-weight:500;
+    font-size:1.6em; line-height:1.15;
   }
   .open-days-card ul { list-style:none; margin:0; padding:0; }
-  .open-days-card li {
-    font-size:var(--event-size); line-height:1.35;
-    margin:0 0 14px;
-  }
+  .open-days-card li { line-height:1.35; margin:0 0 0.8em; }
   .open-days-card li:last-child { margin-bottom:0; }
 </style>
 </head>
@@ -43,5 +37,30 @@
       {{EVENTS}}
   </ul>
 </div>
+<script>
+/* Fit the text to the frame: picks the largest size (between --max-text
+   and --min-text) at which every event fits without being cut off. */
+(function () {
+  var card = document.querySelector('.open-days-card');
+  var css = getComputedStyle(document.documentElement);
+  var max = parseFloat(css.getPropertyValue('--max-text')) || 22;
+  var min = parseFloat(css.getPropertyValue('--min-text')) || 10;
+  function fits() {
+    return card.scrollHeight <= card.clientHeight + 1 && card.scrollWidth <= card.clientWidth + 1;
+  }
+  function fit() {
+    var lo = min, hi = max;
+    for (var i = 0; i < 12; i++) {
+      var mid = (lo + hi) / 2;
+      card.style.fontSize = mid + 'px';
+      if (fits()) lo = mid; else hi = mid;
+    }
+    card.style.fontSize = lo + 'px';
+  }
+  fit();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  window.addEventListener('resize', fit);
+})();
+</script>
 </body>
 </html>

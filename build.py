@@ -1,11 +1,11 @@
 """
 Rebuilds index.html from the live Bath Spa Open Days page.
 
-Pulls four blocks from https://www.bathspa.ac.uk/open-days/:
-  - Postgraduate Open Days dates   (anchor d.en.88220)
-  - PGCE Open Events dates         (anchor d.en.88221)
-  - Postgraduate Open Days intro   (anchor d.en.110360)
-  - PGCE Open Events intro         (anchor d.en.110361)
+Pulls the event name, dates and times from two blocks on
+https://www.bathspa.ac.uk/open-days/:
+  - Postgraduate Open Days  (anchor d.en.88220)
+  - PGCE Open Events        (anchor d.en.88221)
+Dates struck through on the page (past events) are left out.
 
 If anything can't be found, the script stops with an error and the
 previously published page stays live, so the embed never goes blank.
@@ -13,18 +13,16 @@ previously published page stays live, so the embed never goes blank.
 Usage:  python build.py                 (fetch the live page)
         python build.py saved-page.html (use a saved copy, for testing)
 """
+import html
 import sys
 import urllib.request
 from bs4 import BeautifulSoup
 
 SOURCE_URL = "https://www.bathspa.ac.uk/open-days/"
-SITE = "https://www.bathspa.ac.uk"
 
 BLOCKS = {
-    "PG_DATES":   ("d.en.88220",  "Postgraduate Open Days", True),
-    "PGCE_DATES": ("d.en.88221",  "PGCE Open Events",       True),
-    "PG_INTRO":   ("d.en.110360", "Postgraduate Open Days", False),
-    "PGCE_INTRO": ("d.en.110361", "PGCE Open Events",       False),
+    "PG":   ("d.en.88220", "Postgraduate Open Days"),
+    "PGCE": ("d.en.88221", "PGCE Open Events"),
 }
 
 
@@ -55,38 +53,45 @@ def find_block(soup, anchor_id, heading, want_list):
     return None
 
 
-def absolutise(tag):
-    for a in tag.find_all("a", href=True):
-        if a["href"].startswith("/"):
-            a["href"] = SITE + a["href"]
-
-
-def extract(soup, anchor_id, heading, want_list):
-    block = find_block(soup, anchor_id, heading, want_list)
+def extract(soup, anchor_id, heading):
+    """Returns (event name, list of (date, time)) from one dates block."""
+    block = find_block(soup, anchor_id, heading, True)
     if block is None:
         raise SystemExit(f"Could not find the '{heading}' block ({anchor_id})")
-    if want_list:
-        ul = block.find("ul")
-        items = ul.find_all("li", recursive=False) if ul else []
-        if not items:
-            raise SystemExit(f"No dates found in '{heading}'")
-        for li in items:
-            absolutise(li)
-        return "\n      ".join(str(li) for li in items)
-    paras = block.find_all("p", recursive=False)
-    if not paras:
-        raise SystemExit(f"No intro text found in '{heading}'")
-    for p in paras:
-        absolutise(p)
-    return "\n      ".join(str(p) for p in paras)
+    name = block.find("h3").get_text(" ", strip=True)
+    events = []
+    for li in block.find("ul").find_all("li", recursive=False):
+        if li.find("s"):                      # skip dates struck through as past
+            continue
+        # Each item is: <strong>date</strong><br>time<br>location
+        lines = [t.strip() for t in li.get_text("\n").split("\n") if t.strip()]
+        if not lines:
+            continue
+        events.append((lines[0], lines[1] if len(lines) > 1 else ""))
+    if not events:
+        raise SystemExit(f"No dates found in '{heading}'")
+    return name, events
+
+
+def render(events):
+    rows = []
+    for date, time in events:
+        time_html = f'<span class="event-time">{html.escape(time)}</span>' if time else ""
+        rows.append(f'<li><span class="event-date">{html.escape(date)}</span>{time_html}</li>')
+    return "\n      ".join(rows)
 
 
 def main():
     soup = BeautifulSoup(load_source(), "html.parser")
     with open("template.html", encoding="utf-8") as f:
         page = f.read()
-    for key, (anchor_id, heading, want_list) in BLOCKS.items():
-        page = page.replace("{{" + key + "}}", extract(soup, anchor_id, heading, want_list))
+    for key, (anchor_id, heading) in BLOCKS.items():
+        name, events = extract(soup, anchor_id, heading)
+        page = page.replace("{{" + key + "_NAME}}", html.escape(name))
+        page = page.replace("{{" + key + "_EVENTS}}", render(events))
+    if "{{" in page:
+        raise SystemExit("Some placeholders in template.html weren't filled - "
+                         "check build.py and template.html are the matching versions")
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(page)
     print("index.html rebuilt")
